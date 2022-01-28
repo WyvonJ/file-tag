@@ -1,0 +1,131 @@
+@import '../styles/colors';
+
+@mixin tag-color($color, $color-darker, $close-color, $text-color) {
+  background-color: $color;
+  border-color: $color;
+  .ft-tag__icon {
+    background-color: $color-darker;
+    border-color: $color-darker;
+  }
+  .ft-tag__name {
+    color: $text-color;
+  }
+  .ft-tag__close {
+    .material-icons-round {
+      color: $close-color;
+      transition: color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      &:hover {
+        color: $white;
+      }
+    }
+  }
+}
+
+.ft-tag {
+  display: inline-block;
+  height: 34px;
+  line-height: 34px;
+  border: 1px solid white;
+  padding: 4px;
+  border-radius: 17px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: rgb(0 0 0 / 10%) 0px 3px 1px -2px, rgb(0 0 0 / 7%) 0px 2px 2px 0px, rgb(0 0 0 / 6%) 0px 1px 5px 0px;
+  transition: box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  &:hover {
+    box-shadow: rgb(0 0 0 / 20%) 0px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;
+  }
+  &__name {
+    color: white;
+    margin-left: 8px;
+    margin-right: 8px;
+    font-weight: 600;
+    display: inline-block;
+    height: 24px;
+    line-height: 24px;
+    vertical-align: top;
+  }
+  &__icon {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 12px;
+    width: 24px;
+    height: 24px;
+    line-height: 28px;
+    color: white;
+    vertical-align: top;
+    text-align: center;
+    .material-icons-round {
+      font-size: 16px;
+    }
+  }
+  &__icon,
+  &__close {
+    display: inline-block;
+    //display: flex;
+    //justify-content: center;
+    //align-items: center;
+  }
+
+  &__close {
+    height: 24px;
+  }
+
+  &.red {
+    @include tag-color($red500, $red700, $red100, $white);
+  }
+  &.pink {
+    @include tag-color($pink500, $pink700, $pink700, $pink1000);
+  }
+  &.purple {
+    @include tag-color($purple500, $purple700, #4A148C, $white);
+  }
+  &.deepPurple {
+    @include tag-color($deepPurple500, $deepPurple700, $deepPurple700, $white);
+  }
+  &.indigo {
+    @include tag-color($indigo500, $indigo700, $indigo700, $white);
+  }
+  &.blue {
+    @include tag-color($blue500, $blue700, $blue700, $white);
+  }
+  &.lightBlue {
+    @include tag-color($lightBlue500, $lightBlue700, $lightBlue700, $white);
+  }
+  &.cyan {
+    @include tag-color($cyan500, $cyan700, $cyan700, $white);
+  }
+  &.teal {
+    @include tag-color($teal500, $teal700, $teal700, $white);
+  }
+  &.green {
+    @include tag-color($green500, $green700, $green700, $white);
+  }
+  &.lightGreen {
+    @include tag-color($lightGreen500, $lightGreen700, $lightGreen700, $white);
+  }
+  &.lime {
+    @include tag-color($lime500, $lime700, $lime700, $lime900);
+  }
+  &.yellow {
+    @include tag-color($yellow500, $yellow700, $yellow700, $yellow1000);
+  }
+  &.amber {
+    @include tag-color($amber500, $amber700, $amber700, $amber900);
+  }
+  &.orange {
+    @include tag-color($orange500, $orange700, $orange700, $white);
+  }
+  &.deepOrange {
+    @include tag-color($deepOrange500, $deepOrange800, $deepOrange800, $white);
+  }
+  &.brown {
+    @include tag-color($brown500, $brown700, $brown700, $white);
+  }
+  &.blueGrey {
+    @include tag-color($blueGrey500, $blueGrey700, $blueGrey700, $white);
+  }
+  &.grey {
+    @include tag-color($grey500, $grey700, $grey700, $white);
+  }
+}

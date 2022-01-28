@@ -1,0 +1,55 @@
+.color-example {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  margin-right: 8px;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.flex-start {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.tag-list {
+  list-style: none;
+  display: flex;
+  &__item {
+    margin: 4px;
+    .ant-tag {
+      display: flex;
+      min-width: 96px;
+      justify-content: center;
+      align-items: center;
+      border-radius: 18px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      cursor: pointer;
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+    //.material-icons-round {
+    //    font-size: 16px;
+    //}
+    &--text {
+      font-size: 16px;
+      margin-left: 4px;
+    }
+    &--box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}
+
+//.select-tag {
+//    max-width: 160px;
+//}

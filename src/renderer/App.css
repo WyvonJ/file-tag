@@ -1,0 +1,9 @@
+body {
+  position: relative;
+  color: white;
+  height: 100vh;
+  font-family: sans-serif;
+  overflow-y: hidden;
+  padding: 12px;
+}
+
