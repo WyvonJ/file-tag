@@ -1,4 +1,4 @@
 import { render } from 'react-dom';
-import App from './App';
+import Router from './router';
 
-render(<App />, document.getElementById('root'));
+render(<Router />, document.getElementById('root'));

@@ -16,23 +16,8 @@ import colorList from "../config/colorList.json";
 import "./TagManager.scss";
 import MaterialIcon from "../components/MaterialIcon";
 import Tag from "../components/Tag";
-
 const { useForm } = Form;
-
 const { Option } = Select;
-
-
-// function IconOptions({ start, end }: { start?: number; end?: number }) {
-//   return (
-//     <>
-//       {iconList.slice(start, end).map((icon) => (
-//         <Option key={icon} value={icon} label={icon}>
-//           <MaterialIcon icon={icon} />
-//         </Option>
-//       ))}
-//     </>
-//   );
-// }
 
 export default function TagManager() {
   // 弹窗显示
@@ -55,7 +40,8 @@ export default function TagManager() {
 
   async function getTagPage(page: PageParams) {
     try {
-      const { list, total } = await db.getTags(page);
+      const { list, total } = await db.getTagPage(page);
+      console.log("getTagPage", list);
       setTableData(list);
       setPagination({
         current: page.page,
@@ -78,9 +64,10 @@ export default function TagManager() {
     }
   }
 
-  async function handlerDel(tag: FtTag) {
+  function handlerDel(tag: FtTag) {
     Modal.confirm({
       title: "注意",
+      centered: true,
       content: "是否确认删除该标签？",
       onOk: async () => {
         await db.ftTag.delete(tag.id as number);
@@ -168,11 +155,11 @@ export default function TagManager() {
       render: (_all: any, record: FtTag) => {
         return (
           <>
-            <Button type="link" onClick={() => handlerClickTag(record)}>
-              编辑
+            <Button shape="round" type="primary" onClick={() => handlerClickTag(record)} style={{ marginRight: '12px' }}>
+              <MaterialIcon icon="edit"/>
             </Button>
-            <Button type="link" onClick={() => handlerDel(record)}>
-              删除
+            <Button shape="round" danger={true} onClick={() => handlerDel(record)}>
+              <MaterialIcon icon="delete"/>
             </Button>
           </>
         );
@@ -213,8 +200,9 @@ export default function TagManager() {
             const initialValues = {
               name: "",
               color: "red",
-              icon: "settings",
+              icon: "api",
               priority: 0,
+              desc: "",
             };
             setFormValues(initialValues);
             form.setFieldsValue(initialValues);
@@ -222,6 +210,19 @@ export default function TagManager() {
           }}
         >
           <MaterialIcon icon="add" />
+        </Button>
+        <Button
+          type="primary"
+          shape="circle"
+          size="large"
+          onClick={() => {
+            reloadTableData();
+          }}
+          style={{
+            marginLeft: '24px'
+          }}
+        >
+          <MaterialIcon icon="refresh" />
         </Button>
       </div>
 
@@ -233,34 +234,12 @@ export default function TagManager() {
         pagination={pagination}
       ></Table>
 
-      {/*<ul className="tag-list">*/}
-      {/*  {tagList.map((tag) => (*/}
-      {/*    <li className="tag-list__item" key={tag.id} title={tag.desc}>*/}
-      {/*      <Tag*/}
-      {/*        className="red"*/}
-      {/*        closable={true}*/}
-      {/*        onClose={(e: Event) => {*/}
-      {/*          e.preventDefault();*/}
-      {/*          handlerDel(tag);*/}
-      {/*        }}*/}
-      {/*        onClick={() => handlerClickTag(tag)}*/}
-      {/*        color={tag.color}*/}
-      {/*        icon={tag.icon}*/}
-      {/*        name={tag.name}*/}
-      {/*      >*/}
-      {/*        /!*<span className="tag-list__item--box">*!/*/}
-      {/*        /!*  <MaterialIcon icon={tag.icon} />*!/*/}
-      {/*        /!*  <span className="tag-list__item--text">{tag.name}</span>*!/*/}
-      {/*        /!*</span>*!/*/}
-      {/*      </Tag>*/}
-      {/*    </li>*/}
-      {/*  ))}*/}
-      {/*</ul>*/}
       <Modal
         visible={modalVisible}
         title={formValues.id ? "修改" : "新增"}
         onCancel={() => setModalVisible(false)}
         onOk={handlerSubmit}
+        centered={true}
       >
         <Form
           form={form}
@@ -285,7 +264,6 @@ export default function TagManager() {
             </Select>
           </Form.Item>
           <Form.Item name="icon" label="图标" rules={[{ required: true }]}>
-            {/*<Input placeholder="请输入图标"/>*/}
             <Select placeholder="请选择图标">
               {iconList.slice(100, 200).map((icon) => (
                 <Option key={icon} value={icon} label={icon}>
@@ -304,27 +282,8 @@ export default function TagManager() {
           <Form.Item name="desc" label="描述">
             <Input.TextArea placeholder="请输入描述" maxLength={200} />
           </Form.Item>
-          <Form.Item>
-            <div className="flex-center">
-              <span>颜色</span>
-              <span
-                className="color-example"
-                style={{ backgroundColor: formValues.color }}
-              ></span>
-            </div>
-            {/*<div className="flex-center">*/}
-            {/*  <span>图标</span>*/}
-            {/*  <MaterialIcon icon={formValues.icon} />*/}
-            {/*</div>*/}
-          </Form.Item>
         </Form>
       </Modal>
-
-      {/*<IconOptions />*/}
-
-      {/*<Input value={color} onChange={(e) => setColor(e.target.value)} placeholder="请输入颜色"/>*/}
-      {/*<Input value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="请输入图标"/>*/}
-      {/*<Input value={priority} onChange={(e) => setPriority(+e.target.value)} placeholder="请输入优先级"/>*/}
     </div>
   );
 }

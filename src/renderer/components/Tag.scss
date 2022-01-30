@@ -90,7 +90,7 @@
     @include tag-color($blue500, $blue700, $blue700, $white);
   }
   &.lightBlue {
-    @include tag-color($lightBlue500, $lightBlue700, $lightBlue700, $white);
+    @include tag-color($lightBlue500, $lightBlue700, $lightBlue700, $lightBlue1000);
   }
   &.cyan {
     @include tag-color($cyan500, $cyan700, $cyan700, $white);
@@ -102,7 +102,7 @@
     @include tag-color($green500, $green700, $green700, $white);
   }
   &.lightGreen {
-    @include tag-color($lightGreen500, $lightGreen700, $lightGreen700, $white);
+    @include tag-color($lightGreen500, $lightGreen700, $lightGreen700, $lightGreen900);
   }
   &.lime {
     @include tag-color($lime500, $lime700, $lime700, $lime900);
@@ -111,7 +111,7 @@
     @include tag-color($yellow500, $yellow700, $yellow700, $yellow1000);
   }
   &.amber {
-    @include tag-color($amber500, $amber700, $amber700, $amber900);
+    @include tag-color($amber500, $amber700, $amber700, $amber1000);
   }
   &.orange {
     @include tag-color($orange500, $orange700, $orange700, $white);
