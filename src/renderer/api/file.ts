@@ -1,7 +1,16 @@
 import callApi from "./callApi";
 
 export async function getFileListRecursive(dir: string) {
-  const res = await callApi('getFileList', dir);
+  const res = await callApi('getFileListRecursive', dir);
+  return res;
+}
+
+/**
+ * 获取指定文件夹下的所有文件信息
+ * @param dir
+ */
+export async function getFileListCurrent(dir: string) {
+  const res = await callApi('getFileListCurrent', dir);
   return res;
 }
 
@@ -37,8 +46,8 @@ export async function readExcel(path: string) {
   return res;
 }
 
-export async function getThumbnails(params) {
-  const res = await callApi('getThumbnails', params);
+export async function readImageList(params) {
+  const res = await callApi('readImageList', params);
   return res;
 }
 
@@ -49,9 +58,11 @@ export async function getImage(path) {
 
 export default {
   getFileListRecursive,
+  getFileListCurrent,
   getDirTree,
   getFileStats,
+  openFile,
   readExcel,
-  getThumbnails,
+  readImageList,
   getImage,
 }

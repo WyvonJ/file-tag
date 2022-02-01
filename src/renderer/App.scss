@@ -20,3 +20,12 @@ body {
 .ant-tabs-content {
   height: 100%;
 }
+
+.ant-btn {
+  .material-icons-round {
+    vertical-align: sub;
+  }
+  .btn-text {
+    vertical-align: top;
+  }
+}

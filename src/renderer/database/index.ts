@@ -101,7 +101,11 @@ export class FileTagDataBase extends Dexie {
     };
     try {
       const offset = (page - 1) * size;
-      const list = await this.ftTag.orderBy('color').offset(offset).limit(size).toArray();
+      const list = await this.ftTag
+        .orderBy("color")
+        .offset(offset)
+        .limit(size)
+        .toArray();
       const total = await this.ftTag.count();
       list.forEach((item) => {
         const { createDate, updateDate } = item;
@@ -225,7 +229,7 @@ export class FileTagDataBase extends Dexie {
    * 删除标签，需要将标签以及关联了该标签的所有文件下的该标签id也删除
    * @param id
    */
-  deleteTag(id: number) {
+  async deleteTag(id: number) {
     return this.transaction("rw", this.ftTag, this.ftFile, async () => {
       try {
         const tag = await this.ftTag.where({ id }).first();
@@ -249,7 +253,7 @@ export class FileTagDataBase extends Dexie {
   }
 
   /**
-   * 添加文件
+   * 添加树文件
    * @param files
    */
   async addTreeFiles(files: Array<FtFile>) {
@@ -269,8 +273,15 @@ export class FileTagDataBase extends Dexie {
     return ids;
   }
 
+
+  async addFile() {
+
+  }
+
   /**
-   *
+   * 获取到文件树
+   * 1. 获取所有根节点 parentId==-1
+   * 2.
    */
   async getTree() {
     // Find out all the root nodes, where their parentIds are -1
@@ -281,14 +292,19 @@ export class FileTagDataBase extends Dexie {
       .toArray();
     // Get children
     const getChildren = async (node) => {
+      // 文件夹
       if (node && !node.isFile) {
         const { id: nodeId } = node;
-        const children = await this.ftFile
+        // 查找库中文件夹的子节点
+        const dbChildren = await this.ftFile
           .where({ parentId: nodeId })
           .toArray();
-        if (children.length) {
+        // fs读取文件夹下的所有文件, 进行一次diff
+        // const dirChildren = await fs.readdir(node.path);
+        // const dirChildren = await getFileListCurrent(node.path);
+        if (dbChildren.length) {
           node.children = await Promise.all(
-            children.map(async (child) => await getChildren(child))
+            dbChildren.map(async (child) => await getChildren(child))
           );
         }
       }

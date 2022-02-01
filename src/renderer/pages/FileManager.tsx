@@ -2,7 +2,7 @@ import { Button, message, Modal, Tree } from "antd";
 import Draggable from "react-draggable";
 import { useEffect, useRef, useState } from "react";
 import "./FileManager.scss";
-import { getDirTree, getFileStats } from "../api";
+import { getDirTree, getFileListCurrent, getFileStats } from "../api";
 import { db, FtFile, FtTag } from "../database";
 import MaterialIcon from "../components/MaterialIcon";
 import TagSelect from "../components/TagSelect";
@@ -27,6 +27,8 @@ export default function FileManager() {
     right: 0,
   });
 
+  const [dirVisible, setDirVisible] = useState(false);
+
   const tagSelectRef = useRef<typeof TagSelect>();
 
   const draggleRef: any = useRef();
@@ -46,8 +48,9 @@ export default function FileManager() {
 
   async function handlerDrop(e) {
     e.preventDefault();
+    // 拖拽的文件夹路径
     const [{ path }] = e.dataTransfer.files;
-
+    // 获取Stats属性
     const { data: stats } = await getFileStats(path);
 
     if (stats.isFile) {
@@ -59,13 +62,15 @@ export default function FileManager() {
       title: "提示",
       content: `将添加${path}文件夹，是否确认`,
       centered: true,
+      okText: "确定",
+      cancelText: "取消",
       onOk: async () => {
         try {
           const { data }: any = await getDirTree(path);
           // 保存树到数据库
-          const treeData = await saveTreeData([data]);
+          await saveTreeData([data]);
           console.log(JSON.stringify(data, null, 2));
-          setTreeData(treeData);
+          await loadTree();
         } catch (e) {
           console.log(e);
         }
@@ -122,9 +127,11 @@ export default function FileManager() {
   /**
    * 加载树
    * 取出所有的文件数据，构建树
+   * TODO: 读取所有根节点, 对每个根节点进行遍历, 查找文件变化, 并同步更新
+   * 多出的文件存到库里, 删掉的文件从库中删除, 以文件夹为中心判断
    */
   async function loadTree() {
-    const hide = message.loading("加载目录数据中...");
+    const hide = message.loading("加载目录数据中...", Infinity);
     const result = await db.getTree();
     setTreeData(result);
     hide();
@@ -136,6 +143,8 @@ export default function FileManager() {
       title: "提示",
       centered: true,
       content: `将删除${name}标签，是否确认`,
+      okText: "确认",
+      cancelText: "取消",
       onOk: async () => {
         if (currentFile && currentFile.id) {
           await db.delTagAttachment(currentFile.id, [id]);
@@ -153,21 +162,20 @@ export default function FileManager() {
   return (
     <div className="file-manager">
       <div className="file-manager__directories">
-        <div
-          className="file-manager__directories--drop"
-          onDrop={handlerDrop}
-          onDragEnter={handlerDragEnter}
-          onDragOver={handlerDragOver}
-        >
-          <span>Drag directory to start.</span>
-        </div>
+        <Button shape="round" onClick={() => setDirVisible(true)}>
+          <MaterialIcon icon="add" />
+          <span className="btn-text">添加文件夹</span>
+        </Button>
         <div className="file-manager__directories--tree">
           {treeData?.length ? (
             <Tree.DirectoryTree
-              onSelect={(_, { node }) => {
+              onSelect={async (_, { node }) => {
                 const { isFile, id }: any = node;
                 if (isFile) {
                   handlerSelectTreeNode(id);
+                } else {
+                  const fList = await getFileListCurrent((node as any).path);
+                  console.log("fList", fList);
                 }
               }}
               treeData={treeData}
@@ -240,6 +248,23 @@ export default function FileManager() {
         )}
       >
         <TagSelect ref={tagSelectRef} selectedKeys={currentFile.tagIds} />
+      </Modal>
+
+      <Modal
+        visible={dirVisible}
+        centered={true}
+        title="请拖拽文件夹上传"
+        onOk={() => setDirVisible(false)}
+        onCancel={() => setDirVisible(false)}
+      >
+        <div
+          className="file-manager__directories--drop"
+          onDrop={handlerDrop}
+          onDragEnter={handlerDragEnter}
+          onDragOver={handlerDragOver}
+        >
+          <span>拖拽文件夹到此处.</span>
+        </div>
       </Modal>
     </div>
   );

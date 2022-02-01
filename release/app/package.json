@@ -14,7 +14,6 @@
     "postinstall": "npm run electron-rebuild && npm run link-modules"
   },
   "dependencies": {
-    "canvas": "^2.9.0",
     "fluent-ffmpeg": "^2.1.2"
   },
   "license": "MIT"

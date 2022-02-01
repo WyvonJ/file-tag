@@ -2,11 +2,12 @@ import dayjs from "dayjs";
 import fs from "fs/promises";
 import path from "path";
 // import * as uuid from "uuid";
-import mimeTypes from 'mime-types'
-import { generateThumbnails, sizeToStr } from '../utils';
-import { Stats } from 'fs';
-import {shell} from 'electron'
-import Xlsx from 'xlsx'
+import mimeTypes from "mime-types";
+import { generateThumbnails } from "../utils";
+import { Stats } from "fs";
+import { shell } from "electron";
+import Xlsx from "xlsx";
+import { sizeToStr } from "../../common/utils";
 
 interface FileDesc {
   name: string;
@@ -16,8 +17,23 @@ interface FileDesc {
   fileCreateDate: string;
 }
 
+// const imageTypes = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'bmp']
+const videoTypes = [
+  "mp4",
+  "mkv",
+  "ts",
+  "avi",
+  "wmv",
+  "m4v",
+  "flv",
+  "f4v",
+  "rm",
+  "rmvb",
+  "mov",
+];
+// const audioTypes = ['mp3', 'flac', 'ape', 'ogg', 'wav', 'wma', 'aac']
 // 过滤文件
-const fileFilter = ['.DS_Store']
+const fileFilter = [".DS_Store"];
 
 /**
  * 递归获取文件列表
@@ -67,13 +83,15 @@ export async function getFileListCurrent(dir: string): Promise<FileDesc[]> {
       const data = await fs.stat(path.join(dir, file));
       if (data.isFile() && !fileFilter.includes(file)) {
         const ext = file?.split(".")?.pop()?.toLowerCase() || "";
-        fileList.push({
-          name: file,
-          path: path.join(dir, file),
-          size: sizeToStr(data.size),
-          type: ext,
-          fileCreateDate: dayjs(data.birthtime).format("YYYY-MM-DD HH:mm:ss"),
-        });
+        if (videoTypes.includes(ext)) {
+          fileList.push({
+            name: file,
+            path: path.join(dir, file),
+            size: sizeToStr(data.size),
+            type: ext,
+            fileCreateDate: dayjs(data.birthtime).format("YYYY-MM-DD HH:mm:ss"),
+          });
+        }
       }
     }
   } catch (e) {
@@ -82,18 +100,19 @@ export async function getFileListCurrent(dir: string): Promise<FileDesc[]> {
   return fileList;
 }
 
-// const imageTypes = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'bmp']
-// const videoTypes = ['mp4', 'mkv', 'ts', 'avi', 'wmv', 'm4v', 'flv', 'f4v', 'rm', 'rmvb', 'mov']
-// const audioTypes = ['mp3', 'flac', 'ape', 'ogg', 'wav', 'wma', 'aac']
 /**
  * 根据路径获取
  * @param dirPath
  * @returns {Promise<*>}
  */
 export async function getDirTree(dirPath: string) {
-  const name = dirPath.split("/").pop() || '';
+  const name = dirPath.split("/").pop() || "";
   const dirStats = await fs.stat(dirPath);
-  if (!dirStats.isDirectory() || dirPath.split(".").pop() === "app" || fileFilter.includes(name)) {
+  if (
+    !dirStats.isDirectory() ||
+    dirPath.split(".").pop() === "app" ||
+    fileFilter.includes(name)
+  ) {
     return [];
   }
   const treeRoot = {
@@ -106,7 +125,15 @@ export async function getDirTree(dirPath: string) {
   async function getTree(root) {
     if (root) {
       const rootStats = await fs.stat(root.path);
-      if (!rootStats.isDirectory() || root.path.split(".").pop() === "app" || fileFilter.includes(root.name)) {
+      // 1. 必须为文件夹
+      // 2. 必须为非.app文件
+      // 3. 特定平台需要排除一些文件夹
+      // 4. 只包含所有视频文件
+      if (
+        !rootStats.isDirectory() ||
+        root.path.split(".").pop() === "app" ||
+        fileFilter.includes(root.name)
+      ) {
         return;
       }
       const dirs = await fs.readdir(root.path);
@@ -117,31 +144,38 @@ export async function getDirTree(dirPath: string) {
       //         realDirs.push(dir)
       //     }
       // }
-      const children = await Promise.all(
-        dirs.filter((dir) => !fileFilter.includes(dir)).map(async (dir) => {
-          const stats = await fs.stat(path.join(root.path, dir));
-          const node = {
-            // id: uuid.v4(),
-            name: dir.split("/").pop(),
-            path: path.join(root.path, dir),
-            // parentId: root.id,
-          };
-          if (stats.isDirectory() && dir.split(".").pop() !== "app") {
-            const result = await getTree({
-              ...node,
-              isLeaf: false,
-              isFile: false,
-            });
-            return result;
-          } else {
-            return {
-              ...node,
-              isLeaf: true,
-              isFile: true,
+      let children = await Promise.all(
+        dirs
+          .filter((dir) => !fileFilter.includes(dir))
+          .map(async (dir) => {
+            const name = dir.split("/").pop();
+            const ext = name?.split('.')?.pop() || ''
+            const stats = await fs.stat(path.join(root.path, dir));
+            const node = {
+              // id: uuid.v4(),
+              name,
+              path: path.join(root.path, dir),
+              // parentId: root.id,
             };
-          }
-        })
+            if (stats.isDirectory() && dir.split(".").pop() !== "app") {
+              const result = await getTree({
+                ...node,
+                isLeaf: false,
+                isFile: false,
+              });
+              return result;
+            } else if (videoTypes.includes(ext)) {
+              return {
+                ...node,
+                isLeaf: true,
+                isFile: true,
+              };
+            } else {
+              return null;
+            }
+          })
       );
+      children = children.filter(async (v) => await v);
       if (children.length) {
         root.children = children.sort((a, b) => {
           if (a.isLeaf === true && b.isLeaf === false) {
@@ -160,34 +194,36 @@ export async function getDirTree(dirPath: string) {
   return tree;
 }
 
-export async function getFileStats(dir: string): Promise<Stats | {isFile : boolean, isDirectory: boolean}> {
+export async function getFileStats(
+  dir: string
+): Promise<Stats | { isFile: boolean; isDirectory: boolean }> {
   const stats = await fs.stat(dir);
-  const isFile = stats.isFile()
-  const isDirectory = stats.isDirectory()
+  const isFile = stats.isFile();
+  const isDirectory = stats.isDirectory();
   return { ...stats, isFile, isDirectory };
 }
 
 export async function openFile(path: string) {
   const message = await shell.openPath(path);
-  return message
+  return message;
 }
 
 export async function readExcel(path: string) {
-  const file = Xlsx.readFile(path)
+  const file = Xlsx.readFile(path);
   return file;
 }
 
-export async function getThumbnails({ source, options }) {
+export async function readImageList({ source, options }) {
   try {
-    console.log('开始生成缩略图')
-    console.time('耗时')
-    const image = await generateThumbnails(source, options);
-    console.timeEnd('耗时')
-    console.log('已生成缩略图')
-    return image;
+    console.log("开始生成缩略图");
+    console.time("耗时");
+    const images = await generateThumbnails(source, options);
+    console.timeEnd("耗时");
+    console.log("已生成缩略图");
+    return images;
   } catch (e) {
-    console.log('getThumbnails Error', e)
-    return e
+    console.log("生成缩略图 Error", e);
+    return e;
   }
 }
 
@@ -197,24 +233,25 @@ export async function getThumbnails({ source, options }) {
  */
 export async function getImage(path: string) {
   try {
-    console.log('开始加载图片')
+    console.log("开始加载图片");
     const image = await fs.readFile(path);
-    const data = new Buffer(image).toString('base64');
-    console.log('完成加载图片')
-    console.log(mimeTypes.lookup(path))
+    const data = new Buffer(image).toString("base64");
+    console.log("完成加载图片");
+    console.log(mimeTypes.lookup(path));
     return `data:${mimeTypes.lookup(path)};base64,${data}`;
   } catch (e) {
-    console.log(e)
+    console.log(e);
     return e;
   }
 }
 
 export default {
   getFileListRecursive,
+  getFileListCurrent,
   getDirTree,
   getFileStats,
   openFile,
   readExcel,
-  getThumbnails,
-  getImage
+  readImageList,
+  getImage,
 };

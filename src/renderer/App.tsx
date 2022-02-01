@@ -1,5 +1,5 @@
 import { Tabs } from "antd";
-import "./App.css";
+import "./App.scss";
 import "./styles/index.scss";
 // import { Outlet, useNavigate } from 'react-router-dom';
 import FileManager from "./pages/FileManager";
@@ -17,7 +17,7 @@ function App() {
   // }
   return (
     <>
-      <Tabs defaultActiveKey="ConfigManager" type="card">
+      <Tabs defaultActiveKey="FileManager" type="card">
         <TabPane tab="标签文件" key="TagFiles">
           <TagFiles />
         </TabPane><TabPane tab="文件管理" key="FileManager">
