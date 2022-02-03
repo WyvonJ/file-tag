@@ -149,7 +149,7 @@ export async function getDirTree(dirPath: string) {
           .filter((dir) => !fileFilter.includes(dir))
           .map(async (dir) => {
             const name = dir.split("/").pop();
-            const ext = name?.split('.')?.pop() || ''
+            const ext = (name?.split(".")?.pop() || "").toLowerCase();
             const stats = await fs.stat(path.join(root.path, dir));
             const node = {
               // id: uuid.v4(),
@@ -169,13 +169,16 @@ export async function getDirTree(dirPath: string) {
                 ...node,
                 isLeaf: true,
                 isFile: true,
+                type: ext,
+                size: stats.size,
+                createDate: stats.birthtime,
               };
             } else {
               return null;
             }
           })
       );
-      children = children.filter(async (v) => await v);
+      children = children.filter((v) => v);
       if (children.length) {
         root.children = children.sort((a, b) => {
           if (a.isLeaf === true && b.isLeaf === false) {
@@ -245,6 +248,42 @@ export async function getImage(path: string) {
   }
 }
 
+export async function renameFile({
+  oldPath,
+  newPath
+}) {
+  try {
+    await fs.rename(oldPath, newPath);
+    return true;
+  } catch (error) {
+    console.log('Failed to rename file', error);
+    return false;
+  }
+}
+
+/**
+ * 写入图片到指定的位置
+ * @export
+ * @param {*} {
+ *   dirpath,
+ *   filename,
+ *   data
+ * }
+ */
+export async function saveImage({
+  dirpath,
+  filename,
+  data
+}) {
+  try {
+    await fs.writeFile(path.join(dirpath, filename), data, 'base64');
+    return true;
+  } catch (error) {
+    console.log('Failed to write iamge', error);
+    return false;
+  }
+}
+
 export default {
   getFileListRecursive,
   getFileListCurrent,
@@ -254,4 +293,6 @@ export default {
   readExcel,
   readImageList,
   getImage,
+  renameFile,
+  saveImage,
 };

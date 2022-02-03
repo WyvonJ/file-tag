@@ -1,9 +1,8 @@
-import { Button, message, Upload, Switch, Image } from "antd";
-import { readImageList, readExcel } from "../api";
-import { db } from "../database";
-import { useRef, useState } from "react";
-import { combineImages } from "../utils/imageUtils";
+import { Button, Input, message, Upload } from "antd";
+import { useEffect, useRef, useState } from "react";
 import './ConfigManager.scss'
+import { readExcel } from "../api";
+import { db, importDatabase } from "../database";
 
 function ConfigManager() {
   async function handlerBeforeUpload(file) {
@@ -33,39 +32,34 @@ function ConfigManager() {
     return false;
   }
 
-  const [thumbnail, setThumbnail] = useState("");
   // const [imageList, setImageList] = useState<Array<any>>([]);
   //
-  // const [videoMeta, setVideoMeta] = useState<any>({})
+  const [thumbnailPath, setThumbnailPath] = useState<any>('')
 
-  const containerRef = useRef<any>();
+  useEffect(() => {
+    setThumbnailPath(localStorage.getItem('thumbnail_path'));
+  }, []);
 
-  const [generate, setGenerate] = useState(false);
-  const [cleanTemp, setCleanTemp] = useState(false);
+  function handlerConfirmPath() {
+    localStorage.setItem('thumbnail_path', thumbnailPath)
+  }
 
-  async function handlerThumbnails() {
-    const hide = message.loading("生成缩略图中", 60000);
-    const source =
-      "/Users/wuji/Downloads/Videos/Test/入门盲目虐 白练四个月 | 腹肌训练经验分享.mp4";
-    const { data: { images, info } }: any = await readImageList({
-      source,
-      options: {
-        generate,
-        cleanTemp,
-      },
-    });
-    const base64 = await combineImages(images, info);
-    setThumbnail(base64);
-    hide();
+
+  const [downloadUrl, setDownloadUrl] = useState<any>('')
+
+  async function handlerExportDatabase() {
+    const data: any = await db.export({ prettyJson: true });
+    const url = window.URL.createObjectURL(data);
+    setDownloadUrl(url);
+  }
+
+  async function handlerImportDatabase(file) {
+    await importDatabase(file);
+    message.success("数据库导入成功");
   }
 
   return (
     <div className="config-manager">
-      是否生成: <Switch onChange={(v) => setGenerate(v)}></Switch><br/>
-      是否清理: <Switch onChange={(v) => setCleanTemp(v)}></Switch>
-      <Button shape="round" onClick={() => handlerThumbnails()}>
-        缩略图
-      </Button>
       <Upload
         accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         beforeUpload={handlerBeforeUpload}
@@ -73,7 +67,21 @@ function ConfigManager() {
       >
         <Button shape="round">导入标签</Button>
       </Upload>
-      <div className="canvas-container" ref={containerRef}></div>
+      <span>缩略图地址</span>
+      <Input value={thumbnailPath} onChange={(v) => setThumbnailPath(v.target.value)}/>
+      <Button onClick={() => handlerConfirmPath()}>确认修改</Button>
+
+      <br />
+      <a href={downloadUrl} download="data.json">下载</a>
+      <Button shape="round" onClick={handlerExportDatabase}>导出数据库</Button>
+      <Upload
+        accept="application/json"
+        beforeUpload={handlerImportDatabase}
+        maxCount={1}
+      >
+      <Button shape="round">导入数据库</Button>
+      </Upload>
+
       {/*<div style={{ height: '600px', overflowY: 'auto', width: '1000px' }}>*/}
       {/*  <div>{videoMeta.filename}</div>*/}
       {/*  <div>{videoMeta.width}x{videoMeta.height}</div>*/}
@@ -87,7 +95,6 @@ function ConfigManager() {
       {/*      ))}*/}
       {/*  </ul>*/}
       {/*</div>*/}
-      {thumbnail && <Image src={thumbnail} alt="" style={{ width: "400px" }} />}
     </div>
   );
 }

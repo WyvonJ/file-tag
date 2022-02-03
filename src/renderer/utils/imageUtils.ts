@@ -100,20 +100,20 @@ export async function combineImages(
 
   // 绘制文件名
   ctx.fillStyle = "#ffffff";
-  ctx.font = 'bold 40px Palatino';
+  ctx.font = 'bold 40px "Palatino Linotype"';
   ctx.fillText(filename, 12, 50);
   // 绘制文件时长
-  ctx.font = 'bold 26px Palatino';
+  ctx.font = 'bold 26px "Palatino Linotype"';
   ctx.fillText(formatSeconds(duration), w - 160, 30);
   // 绘制文件大小
-  ctx.font = 'bold 26px Palatino';
+  ctx.font = 'bold 26px "Palatino Linotype"';
   ctx.fillText(sizeToStr(size), w - 160, 68);
   // 绘制文件分辨率
-  ctx.font = 'bold 30px Palatino';
+  ctx.font = 'bold 30px "Palatino Linotype"';
   ctx.fillText(`${videoWidth}×${videoHeight}`, w - 400, 30);
   // 绘制缩略图
   const imageCount = columns * rows;
-  ctx.font = '400 30px Palatino';
+  ctx.font = '400 30px "Palatino Linotype"';
   // 按顺序绘制所有缩略图
   for (let i = 0; i < imageCount; i += columns) {
     for (let j = 0; j < columns; j++) {
@@ -124,7 +124,7 @@ export async function combineImages(
         // 加载图片
         const imgEle = await loadImage(data, thumbWidth, thumbHeight);
 
-        const x = j * (thumbWidth + gutter);
+        const x = j * (thumbWidth + gutter) + gutter;
         const y = header + Math.ceil(i / columns) * (thumbHeight + gutter);
         ctx.drawImage(imgEle, x, y, thumbWidth, thumbHeight);
         // 绘制缩略图定位时间

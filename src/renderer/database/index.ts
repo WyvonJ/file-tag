@@ -1,4 +1,5 @@
 import Dexie, { Table } from "dexie";
+import "dexie-export-import";
 import dayjs from "dayjs";
 
 /**
@@ -34,6 +35,7 @@ export interface FtFile {
   createDate?: number; // 创建时间戳
   updateDate?: number; // 更新时间戳
   children?: FtFile[];
+  thumbnail?: string; // 缩略图地址
 }
 
 export interface PageResult<T> {
@@ -273,10 +275,7 @@ export class FileTagDataBase extends Dexie {
     return ids;
   }
 
-
-  async addFile() {
-
-  }
+  async addFile() {}
 
   /**
    * 获取到文件树
@@ -412,6 +411,18 @@ export class FileTagDataBase extends Dexie {
     console.log(files);
     return files;
   }
+
+  /**
+   * 获取所有文件 即isFile为true
+   */
+  async getFileList() {
+    const files = await this.ftFile.toArray();
+    return files.filter(({ isFile }) => isFile)
+  }
+
+  async getDirList() {
+
+  }
 }
 
 function getIntersection(arr: Array<Array<number>>) {
@@ -422,3 +433,14 @@ export const db = new FileTagDataBase();
 
 // 数据库连接初始化完成调用
 db.on("populate", () => {});
+
+
+export async function importDatabase(data) {
+  try {
+    await Dexie.import(data);
+    return true;
+  } catch (error) {
+    console.log('Import database error', error)
+    return false;   
+  }
+}

@@ -13,13 +13,13 @@ export function formatSeconds(value) {
 
 export function sizeToStr(size) {
   let data = '';
-  if (size < 0.1 * 1024) {
+  if (size < 0.9 * 1024) {
     //如果小于0.1KB转化成B
     data = size.toFixed(2) + 'B';
-  } else if (size < 0.1 * 1024 * 1024) {
+  } else if (size < 0.9 * 1024 * 1024) {
     //如果小于0.1MB转化成KB
     data = (size / 1024).toFixed(2) + 'KB';
-  } else if (size < 0.1 * 1024 * 1024 * 1024) {
+  } else if (size < 0.9 * 1024 * 1024 * 1024) {
     //如果小于0.1GB转化成MB
     data = (size / (1024 * 1024)).toFixed(2) + 'MB';
   } else {

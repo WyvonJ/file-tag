@@ -56,6 +56,16 @@ export async function getImage(path) {
   return res;
 }
 
+export async function renameFile(path) {
+  const res = await callApi('renameFile', path);
+  return res;
+}
+
+export async function saveImage(params: { dirpath: string,filename: string, data: string }) {
+  const res = await callApi('saveImage', params);
+  return res;
+}
+
 export default {
   getFileListRecursive,
   getFileListCurrent,
@@ -65,4 +75,6 @@ export default {
   readExcel,
   readImageList,
   getImage,
+  renameFile,
+  saveImage,
 }

@@ -3,6 +3,7 @@ import fs from "fs/promises";
 // import { loadImage, createCanvas } from 'canvas';
 import path from "path";
 import { formatSeconds, sizeToStr } from "../../common/utils";
+import chalk from "chalk";
 
 export interface ThumbnailOptions {
   size?: string;
@@ -27,9 +28,12 @@ export interface ThumbnailConfig {
 async function checkDestination(destination: string) {
   try {
     await fs.stat(destination);
+    console.log(chalk.redBright(`文件目录已存在，将删除文件夹 ${destination}`));
     // 存在则删除
     await fs.rm(destination, { recursive: true });
+    console.log(chalk.redBright('删除文件夹成功'));
   } catch (error) {
+    console.log(chalk.redBright('文件目录不存在，将新建文件夹' + destination + error))
     await fs.mkdir(destination);
   }
 }
@@ -218,8 +222,11 @@ export async function generateThumbnails(source, options?: ThumbnailOptions) {
   dirname.pop();
   const destination = path.join(path.sep, ...dirname);
 
-  const tempDir = path.join(destination, `${path.sep}thumbtemp${path.sep}`);
+  let tempDir = path.join(destination, `${path.sep}thumbtemp${path.sep}${path.sep}`);
   if (options?.generate !== false) {
+    if (process.platform === 'win32') {
+      tempDir = tempDir.slice(1)
+    }
     await checkDestination(tempDir);
   }
   // 获取文件元信息
