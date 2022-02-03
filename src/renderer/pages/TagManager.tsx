@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import {
   Button,
   Form,
@@ -9,13 +9,13 @@ import {
   Select,
   Table,
   TablePaginationConfig,
-} from "antd";
-import { db, FtTag, PageParams } from "../database";
-import iconList from "../config/iconList.json";
-import colorList from "../config/colorList.json";
-import "./TagManager.scss";
-import MaterialIcon from "../components/MaterialIcon";
-import Tag from "../components/Tag";
+} from 'antd';
+import { db, FtTag, PageParams } from '../database';
+import iconList from '../config/iconList.json';
+import colorList from '../config/colorList.json';
+import './TagManager.scss';
+import MaterialIcon from '../components/MaterialIcon';
+import Tag from '../components/Tag';
 const { useForm } = Form;
 const { Option } = Select;
 
@@ -24,9 +24,9 @@ export default function TagManager() {
   const [modalVisible, setModalVisible] = useState(false);
   // 表单绑定值
   const [formValues, setFormValues] = useState<FtTag>({
-    name: "",
-    color: "red",
-    icon: "",
+    name: '',
+    color: 'red',
+    icon: '',
     priority: 0,
   });
   // 分页参数
@@ -41,7 +41,7 @@ export default function TagManager() {
   async function getTagPage(page: PageParams) {
     try {
       const { list, total } = await db.getTagPage(page);
-      console.log("getTagPage", list);
+      console.log('getTagPage', list);
       setTableData(list);
       setPagination({
         current: page.page,
@@ -57,34 +57,34 @@ export default function TagManager() {
   async function handlerAdd(values: FtTag) {
     try {
       await db.addTag(values);
-      message.success("创建标签成功");
+      message.success('创建标签成功');
       reloadTableData();
     } catch (e) {
-      message.error("创建标签失败");
+      message.error('创建标签失败');
     }
   }
 
   function handlerDel(tag: FtTag) {
     Modal.confirm({
-      title: "注意",
+      title: '注意',
       centered: true,
-      content: "是否确认删除该标签？",
+      content: '是否确认删除该标签？',
       onOk: async () => {
         await db.ftTag.delete(tag.id as number);
         reloadTableData();
-        message.success("删除标签成功");
+        message.success('删除标签成功');
       },
     });
   }
 
   async function handlerEdit(values: FtTag) {
     if (!values?.id) {
-      message.error("请选择标签");
+      message.error('请选择标签');
       return;
     }
     await db.updateTag(values);
     reloadTableData();
-    message.success("修改标签成功");
+    message.success('修改标签成功');
   }
 
   async function handlerClickTag(tag: FtTag) {
@@ -115,51 +115,60 @@ export default function TagManager() {
 
   const columns = [
     {
-      title: "序号",
-      dataIndex: "index",
+      title: '序号',
+      dataIndex: 'index',
       render: (_all: any, _record: FtTag, index: number) =>
         ((pagination.current || 1) - 1) * (pagination.pageSize || 10) +
         index +
         1,
     },
     {
-      title: "预览",
-      dataIndex: "preview",
+      title: '预览',
+      dataIndex: 'preview',
       render: (_all: any, { color, icon, name }: FtTag) => (
         <Tag color={color} icon={icon} name={name} closable={true} />
       ),
     },
     {
-      title: "名称",
-      dataIndex: "name",
+      title: '名称',
+      dataIndex: 'name',
     },
     {
-      title: "颜色",
-      dataIndex: "color",
+      title: '颜色',
+      dataIndex: 'color',
     },
     {
-      title: "图标",
-      dataIndex: "icon",
+      title: '图标',
+      dataIndex: 'icon',
     },
     {
-      title: "优先级",
-      dataIndex: "priority",
+      title: '优先级',
+      dataIndex: 'priority',
     },
     {
-      title: "描述",
-      dataIndex: "desc",
+      title: '描述',
+      dataIndex: 'desc',
     },
     {
-      title: "操作",
-      dataIndex: "operate",
+      title: '操作',
+      dataIndex: 'operate',
       render: (_all: any, record: FtTag) => {
         return (
           <>
-            <Button shape="round" type="primary" onClick={() => handlerClickTag(record)} style={{ marginRight: '12px' }}>
-              <MaterialIcon icon="edit"/>
+            <Button
+              shape="round"
+              type="primary"
+              onClick={() => handlerClickTag(record)}
+              style={{ marginRight: '12px' }}
+            >
+              <MaterialIcon icon="edit" />
             </Button>
-            <Button shape="round" danger={true} onClick={() => handlerDel(record)}>
-              <MaterialIcon icon="delete"/>
+            <Button
+              shape="round"
+              danger={true}
+              onClick={() => handlerDel(record)}
+            >
+              <MaterialIcon icon="delete" />
             </Button>
           </>
         );
@@ -189,20 +198,20 @@ export default function TagManager() {
     <div className="tag-manager">
       <div
         style={{
-          margin: "20px",
+          margin: '20px',
         }}
       >
         <Button
           type="primary"
-          shape="circle"
+          shape="round"
           size="large"
           onClick={() => {
             const initialValues = {
-              name: "",
-              color: "red",
-              icon: "api",
+              name: '',
+              color: 'red',
+              icon: 'api',
               priority: 0,
-              desc: "",
+              desc: '',
             };
             setFormValues(initialValues);
             form.setFieldsValue(initialValues);
@@ -210,19 +219,21 @@ export default function TagManager() {
           }}
         >
           <MaterialIcon icon="add" />
+          <span className="btn-text">新增</span>
         </Button>
         <Button
-          type="primary"
-          shape="circle"
+          type="default"
+          shape="round"
           size="large"
           onClick={() => {
             reloadTableData();
           }}
           style={{
-            marginLeft: '24px'
+            marginLeft: '24px',
           }}
         >
           <MaterialIcon icon="refresh" />
+          <span className="btn-text">刷新</span>
         </Button>
       </div>
 
@@ -236,10 +247,13 @@ export default function TagManager() {
 
       <Modal
         visible={modalVisible}
-        title={formValues.id ? "修改" : "新增"}
+        title={formValues.id ? '修改' : '新增'}
         onCancel={() => setModalVisible(false)}
         onOk={handlerSubmit}
         centered={true}
+        okText="提交"
+        cancelText="取消"
+        maskClosable={false}
       >
         <Form
           form={form}

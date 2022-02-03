@@ -101,6 +101,38 @@ export async function getFileListCurrent(dir: string): Promise<FileDesc[]> {
 }
 
 /**
+ * 获取目录下的文件列表, 包含文件夹
+ * @export
+ * @param {string} dir
+ * @return {*} 
+ */
+export async function getDirList(dir: string) {
+  const dirList: any[] = [];
+  try {
+    const files = await fs.readdir(dir);
+    for (const d of files) {
+      const stats = await fs.stat(path.join(dir, d));
+      if (d.split('.').pop() !== 'app' && !fileFilter.includes(d)) {
+        const ext = d?.split(".")?.pop()?.toLowerCase() || "";
+        const isFile = stats.isFile();
+        dirList.push({
+          name: d,
+          path: path.join(dir, d),
+          size: sizeToStr(stats.size),
+          type: ext,
+          fileCreateDate: dayjs(stats.birthtime).format("YYYY-MM-DD HH:mm:ss"),
+          isFile,
+          isLeaf: isFile,
+        });
+      }
+    }
+    return dirList;
+  } catch (error) {
+    return null;
+  }  
+}
+
+/**
  * 根据路径获取
  * @param dirPath
  * @returns {Promise<*>}
@@ -287,6 +319,7 @@ export async function saveImage({
 export default {
   getFileListRecursive,
   getFileListCurrent,
+  getDirList,
   getDirTree,
   getFileStats,
   openFile,

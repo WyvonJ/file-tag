@@ -66,6 +66,11 @@ export async function saveImage(params: { dirpath: string,filename: string, data
   return res;
 }
 
+export async function getDirList(params: string) {
+  const res = await callApi('getDirList', params);
+  return res;
+}
+
 export default {
   getFileListRecursive,
   getFileListCurrent,
@@ -77,4 +82,5 @@ export default {
   getImage,
   renameFile,
   saveImage,
+  getDirList,
 }

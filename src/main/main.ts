@@ -16,7 +16,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import apiHandler from "./api";
+import apiHandler from './api';
 
 export default class AppUpdater {
   constructor() {
@@ -29,7 +29,7 @@ export default class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 
 ipcMain.on('ipc-api-request', async (event, arg) => {
-  apiHandler(event, arg)
+  apiHandler(event, arg);
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -79,6 +79,7 @@ const createWindow = async () => {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: true,
+      webSecurity: false,
     },
   });
 

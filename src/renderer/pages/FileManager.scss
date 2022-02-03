@@ -1,6 +1,7 @@
 //$dir-width: 280px;
 //$double-width: 2 * $dir-width - 80px;
-$card-shadow: rgb(0 0 0 / 20%) 0px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;
+$card-shadow: rgb(0 0 0 / 20%) 0px 3px 1px -2px,
+  rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;
 
 @mixin card-shadow {
   box-shadow: $card-shadow;
@@ -37,7 +38,52 @@ $card-shadow: rgb(0 0 0 / 20%) 0px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0p
 
     &--tree {
       height: calc(100% - 44px);
+      .ant-col {
+        height: 24px;
+      }
     }
+  }
+
+  .ant-tree-node-content-wrapper-normal > .ant-tree-title,
+  .ant-tree-title-node {
+    max-width: 320px;
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .dir-actions {
+    display: flex;
+  }
+
+  .ant-tree-list-holder {
+    overflow-x: hidden;
+  }
+
+  .refresh-btn {
+    height: 24px;
+    line-height: 12px;
+    padding: 0;
+    border: none;
+  }
+  .delete-btn {
+    padding: 0;
+    margin-left: 8px;
+    height: 24px;
+    line-height: 12px;
+    border: none;
+    color: #af3d35;
+    &:hover {
+      color: #f44336;
+    }
+  }
+
+  .ant-tree-node-content-wrapper {
+    height: 24px;
+  }
+  .ant-row {
+    height: 24px;
   }
 
   &__files {

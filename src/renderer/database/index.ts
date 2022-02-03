@@ -1,6 +1,6 @@
-import Dexie, { Table } from "dexie";
-import "dexie-export-import";
-import dayjs from "dayjs";
+import Dexie, { Table } from 'dexie';
+import 'dexie-export-import';
+import dayjs from 'dayjs';
 
 /**
  * 标签描述
@@ -61,15 +61,16 @@ export interface FilePageParams extends PageParams {
 }
 
 export class FileTagDataBase extends Dexie {
+  [x: string]: any;
   ftTag!: Table<FtTag, number>;
 
   ftFile!: Table<FtFile, number>;
 
   constructor() {
-    super("FileTagDataBase");
+    super('FileTagDataBase');
     this.version(2).stores({
-      ftTag: "++id, name, color, star, priority, *fileIds",
-      ftFile: "++id, parentId, name, path, star, rate, *tagIds",
+      ftTag: '++id, name, color, star, priority, *fileIds',
+      ftFile: '++id, parentId, name, path, star, rate, *tagIds',
     });
   }
 
@@ -104,7 +105,7 @@ export class FileTagDataBase extends Dexie {
     try {
       const offset = (page - 1) * size;
       const list = await this.ftTag
-        .orderBy("color")
+        .orderBy('color')
         .offset(offset)
         .limit(size)
         .toArray();
@@ -112,10 +113,10 @@ export class FileTagDataBase extends Dexie {
       list.forEach((item) => {
         const { createDate, updateDate } = item;
         if (createDate) {
-          item.createDate = dayjs(createDate).format("YYYY-MM-DD HH:mm:ss");
+          item.createDate = dayjs(createDate).format('YYYY-MM-DD HH:mm:ss');
         }
         if (updateDate) {
-          item.updateDate = dayjs(updateDate).format("YYYY-MM-DD HH:mm:ss");
+          item.updateDate = dayjs(updateDate).format('YYYY-MM-DD HH:mm:ss');
         }
       });
       pageResult.list = list;
@@ -134,7 +135,7 @@ export class FileTagDataBase extends Dexie {
     try {
       result = await this.ftTag.toArray();
     } catch (e) {
-      console.log("getTagList Error", e);
+      console.log('getTagList Error', e);
     }
     return result;
   }
@@ -168,12 +169,12 @@ export class FileTagDataBase extends Dexie {
               fileIds: newFileIds,
             });
           } else {
-            throw new Error("Tag does not exist, tag id is " + tagId);
+            throw new Error('Tag does not exist, tag id is ' + tagId);
           }
         })
       );
     } catch (e) {
-      console.log("attachTagToFile", e);
+      console.log('attachTagToFile', e);
     }
   }
 
@@ -232,7 +233,7 @@ export class FileTagDataBase extends Dexie {
    * @param id
    */
   async deleteTag(id: number) {
-    return this.transaction("rw", this.ftTag, this.ftFile, async () => {
+    return this.transaction('rw', this.ftTag, this.ftFile, async () => {
       try {
         const tag = await this.ftTag.where({ id }).first();
         if (tag) {
@@ -271,11 +272,25 @@ export class FileTagDataBase extends Dexie {
         return id;
       })
     );
-    console.log("addTreeFiles", ids);
+    console.log('addTreeFiles', ids);
     return ids;
   }
 
-  async addFile() {}
+  /**
+   * 新增文件
+   * @param {FtFile} file
+   * @return {*}
+   * @memberof FileTagDataBase
+   */
+  async addFile(file: FtFile) {
+    try {
+      const id = await this.ftFile.add(file);
+      return id;
+    } catch (error) {
+      console.log('新增文件失败', error);
+      return null;
+    }
+  }
 
   /**
    * 获取到文件树
@@ -321,7 +336,38 @@ export class FileTagDataBase extends Dexie {
    * @param id
    */
   async deleteFile(id: number) {
-    console.log(id);
+    try {
+      this.transaction('rw', this.ftFile, this.ftTag, async () => {
+        // 解除所有关联的tag
+        const { tagIds = [] } = await this.getFileById(id);
+        for (const tagId of tagIds) {
+          const tag = await this.getTagById(tagId);
+          if (tag) {
+            await this.updateTag({
+              id: tagId,
+              fileIds: tag.fileIds?.filter((fileId) => fileId !== id),
+            });
+          }
+        }
+        await this.ftFile.delete(id);
+      });
+    } catch (error) {
+      console.log('文件删除失败', error);
+    }
+  }
+
+  /**
+   * 删文件夹
+   * 递归删文件和文件夹
+   * @param {number} id
+   * @memberof FileTagDataBase
+   */
+  async deleteDir(id: number) {
+    
+  }
+
+  async addDir() {
+
   }
 
   async updateFile(file: FtFile) {
@@ -339,27 +385,27 @@ export class FileTagDataBase extends Dexie {
   async delTagAttachment(fileId: number, tagIds: number[]) {
     try {
       // 通过事务完成
-      await this.transaction("rw", this.ftFile, this.ftTag, async () => {
-        console.log("delTagAttachment");
+      await this.transaction('rw', this.ftFile, this.ftTag, async () => {
+        console.log('delTagAttachment');
         const file = await this.getFileById(fileId);
         console.log(file.tagIds, tagIds);
         const newTagIds = file.tagIds.filter(
           (tagId) => !tagIds.includes(tagId)
         );
-        console.log("更新文件的标签关联 newTagIds", newTagIds);
+        console.log('更新文件的标签关联 newTagIds', newTagIds);
         // 更新文件的标签关联
         await this.updateFile({
           id: fileId,
           tagIds: newTagIds,
         });
-        console.log("更新标签的文件关联 tagIds", tagIds);
+        console.log('更新标签的文件关联 tagIds', tagIds);
         // 更新标签的文件关联
         await Promise.all(
           tagIds.map(async (tagId) => {
             const tag = await this.getTagById(tagId);
             const { fileIds = [] } = tag || {};
             const newFileIds = fileIds.filter((id) => id !== fileId);
-            console.log("newFileIds", newFileIds);
+            console.log('newFileIds', newFileIds);
             await this.updateTag({
               id: tagId,
               fileIds: newFileIds,
@@ -368,7 +414,7 @@ export class FileTagDataBase extends Dexie {
         );
       });
     } catch (e) {
-      console.log("delTagAttachment", e);
+      console.log('delTagAttachment', e);
     }
   }
 
@@ -417,12 +463,10 @@ export class FileTagDataBase extends Dexie {
    */
   async getFileList() {
     const files = await this.ftFile.toArray();
-    return files.filter(({ isFile }) => isFile)
+    return files.filter(({ isFile }) => isFile);
   }
 
-  async getDirList() {
-
-  }
+  async getDirList() {}
 }
 
 function getIntersection(arr: Array<Array<number>>) {
@@ -432,15 +476,15 @@ function getIntersection(arr: Array<Array<number>>) {
 export const db = new FileTagDataBase();
 
 // 数据库连接初始化完成调用
-db.on("populate", () => {});
-
+db.on('populate', () => {});
 
 export async function importDatabase(data) {
   try {
+    // @ts-ignore
     await Dexie.import(data);
     return true;
   } catch (error) {
-    console.log('Import database error', error)
-    return false;   
+    console.log('Import database error', error);
+    return false;
   }
 }

@@ -1,8 +1,21 @@
-import { Button, Col, Input, message, message, Modal, Rate, Row, Tree } from "antd";
-import Draggable from "react-draggable";
-import { useEffect, useRef, useState } from "react";
-import "./FileManager.scss";
 import {
+  Button,
+  Col,
+  Input,
+  Modal,
+  Rate,
+  Row,
+  Tree,
+  Empty,
+  message,
+  Tooltip,
+  message,
+} from 'antd';
+import Draggable from 'react-draggable';
+import { useEffect, useRef, useState } from 'react';
+import './FileManager.scss';
+import {
+  getDirList,
   getDirTree,
   getFileListCurrent,
   getFileStats,
@@ -10,15 +23,15 @@ import {
   readImageList,
   renameFile,
   saveImage,
-} from "../api";
-import { db, FtFile, FtTag } from "../database";
-import MaterialIcon from "../components/MaterialIcon";
-import TagSelect from "../components/TagSelect";
-import Tag from "../components/Tag";
-import Thumbnails from "renderer/components/Thumbnails";
-import { formatSeconds, sizeToStr } from "common/utils";
-import { getSep } from "renderer/utils/commonUtils";
-import { combineImages } from "renderer/utils/imageUtils";
+} from '../api';
+import { db, FtFile, FtTag } from '../database';
+import MaterialIcon from '../components/MaterialIcon';
+import TagSelect from '../components/TagSelect';
+import Tag from '../components/Tag';
+import Thumbnails from 'renderer/components/Thumbnails';
+import { formatSeconds, sizeToStr } from 'common/utils';
+import { diffFileTree, getSep } from 'renderer/utils/commonUtils';
+import { combineImages } from 'renderer/utils/imageUtils';
 
 export default function FileManager() {
   const [treeData, setTreeData] = useState<any[]>([]);
@@ -26,8 +39,8 @@ export default function FileManager() {
   const [currentFile, setCurrentFile] = useState<
     FtFile & { tagList: Array<FtTag> }
   >({
-    name: "",
-    path: "",
+    name: '',
+    path: '',
     isFile: true,
     tagList: [],
   });
@@ -42,7 +55,7 @@ export default function FileManager() {
   const [dirVisible, setDirVisible] = useState(false);
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [renameVisible, setRenameVisible] = useState(false);
-  const [renameValue, setRenameValue] = useState("");
+  const [renameValue, setRenameValue] = useState('');
   const tagSelectRef = useRef<typeof TagSelect>();
 
   const draggleRef: any = useRef();
@@ -54,7 +67,7 @@ export default function FileManager() {
    */
   async function saveTreeData(data: FtFile[]) {
     const result = await db.addTreeFiles(data);
-    console.log("saveTreeData", result);
+    console.log('saveTreeData', result);
     return result;
   }
 
@@ -66,16 +79,16 @@ export default function FileManager() {
     const { data: stats } = await getFileStats(path);
 
     if (stats.isFile) {
-      message.error("请拖拽文件夹");
+      message.error('请拖拽文件夹');
       return;
     }
 
     Modal.confirm({
-      title: "提示",
+      title: '提示',
       content: `将添加${path}文件夹，是否确认`,
       centered: true,
-      okText: "确定",
-      cancelText: "取消",
+      okText: '确定',
+      cancelText: '取消',
       onOk: async () => {
         try {
           const { data }: any = await getDirTree(path);
@@ -105,7 +118,7 @@ export default function FileManager() {
       setRate(file.rate || 0);
       setRemarkValue(file.remark);
     } else {
-      message.error("找不到该文件");
+      message.error('找不到该文件');
     }
   }
 
@@ -114,7 +127,7 @@ export default function FileManager() {
    */
   function handlerAddTag() {
     if (!currentFile.id) {
-      message.info("请选择文件");
+      message.info('请选择文件');
       return;
     }
     setTagModalVisible(true);
@@ -127,14 +140,14 @@ export default function FileManager() {
     const { selected = [] }: any = tagSelectRef.current;
     const selectedIds = selected.map(({ id }) => id);
     if (!currentFile?.id) {
-      message.error("请选择文件");
+      message.error('请选择文件');
       return;
     }
     await db.attachTagsToFile(currentFile.id, selectedIds);
-    message.success("添加标签成功");
+    message.success('添加标签成功');
     setTagModalVisible(false);
     await handlerSelectTreeNode(currentFile.id);
-    console.log("selectedIds", selectedIds, currentFile);
+    console.log('selectedIds', selectedIds, currentFile);
   }
 
   /**
@@ -144,21 +157,25 @@ export default function FileManager() {
    * 多出的文件存到库里, 删掉的文件从库中删除, 以文件夹为中心判断
    */
   async function loadTree() {
-    const hide = message.loading("加载目录数据中...", Infinity);
+    const hide = message.loading('加载目录数据中...', Infinity);
     const result = await db.getTree();
-    console.log("树数据", result);
+    console.log('loadTree 树数据', result);
     setTreeData(result);
     hide();
+  }
+
+  async function handlerSearchChange({ target: { value } }) {
+    console.log(value);
   }
 
   // 删除文件绑定的标签
   async function handlerDelTagAttachment(id, name) {
     Modal.confirm({
-      title: "提示",
+      title: '提示',
       centered: true,
       content: `将删除${name}标签，是否确认`,
-      okText: "确认",
-      cancelText: "取消",
+      okText: '确认',
+      cancelText: '取消',
       onOk: async () => {
         if (currentFile && currentFile.id) {
           await db.delTagAttachment(currentFile.id, [id]);
@@ -174,7 +191,7 @@ export default function FileManager() {
    */
   async function handlerRename() {
     const oldPath = currentFile.path;
-    const newPath = oldPath?.replace(currentFile.name || "", renameValue);
+    const newPath = oldPath?.replace(currentFile.name || '', renameValue);
     console.log({
       oldPath,
       newPath,
@@ -184,13 +201,13 @@ export default function FileManager() {
         oldPath,
         newPath,
       });
-      console.log("重命名结果", result);
+      console.log('重命名结果', result);
       await db.updateFile({
         id: currentFile.id,
         name: renameValue,
         path: newPath,
       });
-      message.success("文件重命名成功");
+      message.success('文件重命名成功');
       setRenameVisible(false);
       await loadTree();
       await handlerSelectTreeNode(currentFile.id);
@@ -198,55 +215,62 @@ export default function FileManager() {
     } catch (error) {}
   }
 
+  // 评分
+  const [rate, setRate] = useState(0);
+  const [hoverRate, setHoverRate] = useState(0);
   /**
    * 文件评分
    * @param {*} v
    */
   async function handlerRate(v) {
-    console.log("评分", v);
+    if (!currentFile?.id) {
+      message.info('请选择文件');
+      return;
+    }
     setRate(v);
     await db.updateFile({
       id: currentFile.id,
       rate: v,
     });
-    message.success("评分成功");
+    message.success('评分成功');
   }
 
-  const [rate, setRate] = useState(0);
-  const [remarkValue, setRemarkValue] = useState("");
+  // 文件评论
+  const [remarkValue, setRemarkValue] = useState('');
 
   /**
    * 提交评论
    */
   async function handlerSubmitRemark() {
     if (!remarkValue) {
-      message.info("请填写评价内容");
+      message.info('请填写评价内容');
       return;
     }
     await db.updateFile({
       id: currentFile.id,
       remark: remarkValue,
     });
-    message.success("提交成功");
+    message.success('提交成功');
   }
 
+  // 文件树容器
   const dirContainer = useRef<any>(null);
-
+  // 动态变动树高
   const [treeHeight, setTreeHeight] = useState(0);
 
   function handlerResize() {
     if (dirContainer && dirContainer.current) {
       const { height } = dirContainer.current.getBoundingClientRect();
-      setTreeHeight(height - 44);
+      setTreeHeight(height - 90);
     }
   }
 
   useEffect(() => {
     loadTree();
     handlerResize();
-    window.addEventListener("resize", handlerResize);
+    window.addEventListener('resize', handlerResize);
     return () => {
-      window.removeEventListener("resize", handlerResize);
+      window.removeEventListener('resize', handlerResize);
     };
   }, []);
 
@@ -273,10 +297,10 @@ export default function FileManager() {
         path: newPath,
         parentId: node.id,
       });
-      message.success("文件移动成功");
+      message.success('文件移动成功');
       await loadTree();
     } else {
-      message.info("只能将文件移动到文件夹");
+      message.info('只能将文件移动到文件夹');
     }
   }
 
@@ -285,9 +309,13 @@ export default function FileManager() {
    */
   async function handlerGenerateAllThumbnails() {
     const timeStart = Date.now();
-    message.loading("开始生成缩略图，将会耗时较长，请耐心等待");
+    message.loading('开始生成缩略图，将会耗时较长，请耐心等待');
     const files = await db.getFileList();
     const total = files.length;
+    if (total === 0) {
+      message.info('还未添加文件, 请先添加文件后再生成');
+      return;
+    }
     message.info(`一共将生成${total}个文件缩略图`);
     for (const [index, file] of files.entries()) {
       try {
@@ -304,8 +332,8 @@ export default function FileManager() {
         });
 
         const base64 = await combineImages(images, info);
-        const dirpath = localStorage.getItem("thumbnail_path") || "";
-        const [, data] = base64.split("base64,");
+        const dirpath = localStorage.getItem('thumbnail_path') || '';
+        const [, data] = base64.split('base64,');
         const id = file.id;
         const filename = `${id}.png`;
         await saveImage({
@@ -330,6 +358,51 @@ export default function FileManager() {
     );
   }
 
+  /**
+   * 刷新该目录下的文件
+   * @param {*} node
+   */
+  async function handlerRefreshDir(node) {
+    console.log(node);
+    const { data: currentFileList }: any = await getDirList(node.path);
+    console.log('currentFileList', currentFileList);
+    // 根据名字对比增加的和删除的文件
+    const { deleted, added } = diffFileTree(
+      node.children,
+      currentFileList,
+      'name'
+    );
+    console.log({ deleted, added });
+    for (const file of deleted) {
+      if (file.isFile) {
+        // 删文件
+        await db.deleteFile(file.id);
+      } else {
+        await db.deleteDir(file.id);
+      }
+    }
+    // for (const file of added) {
+    //   file.parentId = node.id;
+    //   file.isFile = true;
+    //   file.isLeaf = true;
+    //   await db.addFile(file);
+    // }
+    // await loadTree();
+  }
+
+  async function handlerDeleteFile(node) {
+    Modal.confirm({
+      title: '注意',
+      centered: true,
+      content: '是否确认删除该文件？',
+      onOk: async () => {
+        await db.deleteFile(node.id);
+        message.success('删除文件成功');
+        await loadTree();
+      },
+    });
+  }
+
   return (
     <div className="file-manager">
       <div className="file-manager__directories" ref={dirContainer}>
@@ -337,111 +410,208 @@ export default function FileManager() {
           <MaterialIcon icon="add" />
           <span className="btn-text">添加文件夹</span>
         </Button>
-        <Button shape="round" onClick={handlerGenerateAllThumbnails}>
-          <MaterialIcon icon="add" />
+
+        <Button
+          shape="round"
+          onClick={handlerGenerateAllThumbnails}
+          style={{ marginLeft: '20px' }}
+        >
+          <MaterialIcon icon="image" />
           <span className="btn-text">一键生成缩略图</span>
         </Button>
+
         <div className="file-manager__directories--tree">
+          <Input.Search
+            style={{ marginBottom: 8, marginTop: 8 }}
+            placeholder="Search"
+            onChange={handlerSearchChange}
+          />
           {treeData?.length ? (
             <Tree.DirectoryTree
               draggable={true}
               blockNode={true}
+              showIcon={false}
               height={treeHeight}
               onSelect={async (_, { node }) => {
                 const { isFile, id }: any = node;
                 if (isFile) {
                   handlerSelectTreeNode(id);
                 } else {
-                  const fList = await getFileListCurrent((node as any).path);
-                  console.log("fList", fList);
+                  // const fList = await getFileListCurrent((node as any).path);
+                  // console.log('fList', fList);
                 }
               }}
               treeData={treeData}
               fieldNames={{
-                key: "id",
-                title: "name",
+                key: 'id',
+                title: 'name',
               }}
               onDrop={handlerTreeNodeDrop}
+              titleRender={(node: any) => {
+                return node.isFile ? (
+                  <Tooltip title={node.name} placement="right">
+                    {node.name}
+                  </Tooltip>
+                ) : (
+                  // <Row justify="space-between" align="middle">
+                  //   <Col span={19}>
+
+                  //   </Col>
+                  //   <Col span={5}>
+                  //     <div className="dir-actions">
+                  //       <Button
+                  //         shape="round"
+                  //         onClick={(e) => {
+                  //           e.stopPropagation();
+                  //           handlerDeleteFile(node);
+                  //         }}
+                  //         className="delete-btn"
+                  //         title="删除文件"
+                  //       >
+                  //         <MaterialIcon icon="delete" />
+                  //       </Button>
+                  //     </div>
+                  //   </Col>
+                  // </Row>
+                  <Row justify="space-between" align="middle">
+                    <Col span={19}>
+                      <span className="ant-tree-title-node">{node.name}</span>
+                    </Col>
+                    <Col span={5}>
+                      <div className="dir-actions">
+                        <Button
+                          shape="round"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlerRefreshDir(node);
+                          }}
+                          className="refresh-btn"
+                          title="刷新目录"
+                        >
+                          <MaterialIcon icon="refresh" />
+                        </Button>
+                        <Button
+                          shape="round"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlerRefreshDir(node);
+                          }}
+                          className="delete-btn"
+                          title="删除目录"
+                        >
+                          <MaterialIcon icon="delete" />
+                        </Button>
+                      </div>
+                    </Col>
+                  </Row>
+                );
+              }}
             />
-          ) : null}
+          ) : (
+            <Empty
+              description="暂无数据, 请添加文件夹"
+              style={{ paddingTop: '120px' }}
+            />
+          )}
         </div>
       </div>
       {/* 文件信息 */}
       <div className="file-manager__files">
-        <Button
-          type="link"
-          onClick={() => {
-            setRenameValue(currentFile.name || "");
-            setRenameVisible(true);
-          }}
-        >
-          重命名
-        </Button>
-        <Button
-          type="link"
-          onClick={() => {
-            if (!currentFile?.path) {
-              message.info("请选择文件");
-              return;
-            }
-            openFile(currentFile.path);
-          }}
-        >
-          打开文件
-        </Button>
-        <h1>{currentFile.name}</h1>
-        <h2>{currentFile.path}</h2>
-        <h2>{sizeToStr(currentFile.size)}</h2>
+        {currentFile?.id ? (
+          <>
+            <Button
+              type="link"
+              onClick={() => {
+                setRenameValue(currentFile.name || '');
+                setRenameVisible(true);
+              }}
+            >
+              重命名
+            </Button>
+            <Button
+              type="link"
+              onClick={() => {
+                if (!currentFile?.path) {
+                  message.info('请选择文件');
+                  return;
+                }
+                openFile(currentFile.path);
+              }}
+            >
+              打开文件
+            </Button>
+            <h1>{currentFile.name}</h1>
+            <h2>{currentFile.path}</h2>
+            <h2>{sizeToStr(currentFile.size)}</h2>
+
+            {/* 缩略图 */}
+            <Thumbnails file={currentFile} />
+          </>
+        ) : (
+          <Empty description="未选择文件" style={{ paddingTop: '150px' }} />
+        )}
       </div>
       <div className="file-manager__manage">
         <Row>
           <Col span={24}>
-            <Rate allowHalf={true} onChange={handlerRate} value={rate} />
-          </Col>
-          <Col span={24}>
-            <Input.TextArea
-              rows={4}
-              value={remarkValue}
-              onChange={(v) => setRemarkValue(v)}
-            />
-            <Button
-              onClick={handlerSubmitRemark}
-              shape="round"
-              style={{
-                marginBottom: "12px",
-              }}
-            >
-              <span className="btn-text">提交评论</span>
-            </Button>
-          </Col>
-          <Col span={24}>
+            <div className="file-manager__files--tags">
+              {currentFile.tagList.map((tag) => (
+                <Tag
+                  key={tag.id}
+                  name={tag.name}
+                  color={tag.color}
+                  icon={tag.icon}
+                  desc={tag.desc}
+                  closable={true}
+                  onClose={() => handlerDelTagAttachment(tag.id, tag.name)}
+                ></Tag>
+              ))}
+            </div>
             <Button
               onClick={handlerAddTag}
               shape="circle"
               size="large"
               style={{
-                marginBottom: "12px",
+                marginBottom: 12,
               }}
             >
               <MaterialIcon icon="add" />
             </Button>
           </Col>
+          <Col span={24} style={{ marginBottom: 12 }}>
+            <span
+              style={{ marginRight: 12, width: 64, display: 'inline-block' }}
+            >
+              评分: {rate}
+            </span>
+            <Rate
+              allowHalf={true}
+              onChange={handlerRate}
+              value={hoverRate}
+              onHoverChange={(v) => setHoverRate(v || 0)}
+            />
+          </Col>
+          <Col span={24}>
+            <Input.TextArea
+              rows={4}
+              value={remarkValue}
+              onChange={(v) => {
+                setRemarkValue(v.target.value);
+              }}
+            />
+            <Button
+              onClick={handlerSubmitRemark}
+              shape="round"
+              type="primary"
+              style={{
+                marginTop: 12,
+                marginBottom: 12,
+              }}
+            >
+              <span className="btn-text">提交评论</span>
+            </Button>
+          </Col>
         </Row>
-        <div className="file-manager__files--tags">
-          {currentFile.tagList.map((tag) => (
-            <Tag
-              key={tag.id}
-              name={tag.name}
-              color={tag.color}
-              icon={tag.icon}
-              desc={tag.desc}
-              closable={true}
-              onClose={() => handlerDelTagAttachment(tag.id, tag.name)}
-            ></Tag>
-          ))}
-        </div>
-        {/* 缩略图 */}
-        <Thumbnails file={currentFile} />
       </div>
 
       <Modal
