@@ -138,11 +138,10 @@ export async function combineImages(
     }
   }
   /********************  结束绘制  ******************** */
-  const [, base64] = canvas.toDataURL().split(",");
   // const combinedFile = `${filename}-[${videoWidth}×${videoHeight}].png`;
   // console.log(base64);
   // console.log(combinedFile);
-  return `data:image/png;base64,${base64}`;
+  return canvas.toDataURL();
 }
 
 export default {
