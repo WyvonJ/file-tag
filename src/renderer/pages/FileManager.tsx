@@ -9,11 +9,9 @@ import {
   Empty,
   message,
   Tooltip,
-  message,
 } from 'antd';
 import Draggable from 'react-draggable';
 import { useEffect, useRef, useState } from 'react';
-import './FileManager.scss';
 import {
   getDirList,
   getDirTree,
@@ -32,8 +30,13 @@ import Thumbnails from 'renderer/components/Thumbnails';
 import { formatSeconds, sizeToStr } from 'common/utils';
 import { diffFileTree, getSep } from 'renderer/utils/commonUtils';
 import { combineImages } from 'renderer/utils/imageUtils';
+import './FileManager.scss';
 
-export default function FileManager() {
+/**
+ * 文件管理器
+ * @return {*}
+ */
+const FileManager = () => {
   const [treeData, setTreeData] = useState<any[]>([]);
   // 当前选中的文件
   const [currentFile, setCurrentFile] = useState<
@@ -212,7 +215,9 @@ export default function FileManager() {
       await loadTree();
       await handlerSelectTreeNode(currentFile.id);
       // TODO: 将树
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   // 评分
@@ -256,7 +261,7 @@ export default function FileManager() {
   // 文件树容器
   const dirContainer = useRef<any>(null);
   // 动态变动树高
-  const [treeHeight, setTreeHeight] = useState(0);
+  const [treeHeight, setTreeHeight] = useState(800);
 
   function handlerResize() {
     if (dirContainer && dirContainer.current) {
@@ -678,4 +683,6 @@ export default function FileManager() {
       </Modal>
     </div>
   );
-}
+};
+
+export default FileManager;

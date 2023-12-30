@@ -1,4 +1,3 @@
-import './TagFiles.scss';
 import { db, FtFile, FtTag } from '../database';
 import { useEffect, useState } from 'react';
 import Tag from '../components/Tag';
@@ -6,8 +5,12 @@ import { Button, Col, Empty, Input, message, Row, Image, Tooltip } from 'antd';
 import { openFile } from '../api';
 import { getSep } from 'renderer/utils/commonUtils';
 import MaterialIcon from 'renderer/components/MaterialIcon';
-
-function TagFiles() {
+import './TagFiles.scss';
+/**
+ * 标签文件
+ * @return {*}
+ */
+const TagFiles = () => {
   const [tagList, setTagList] = useState<FtTag[]>([]);
   const [fileList, setFileList] = useState<FtFile[]>([]);
   const [selectedTags, setSelectedTags] = useState<FtTag[]>([]);
@@ -61,10 +64,12 @@ function TagFiles() {
 
   return (
     <div className="tag-files">
-      <Button onClick={() => getTagList()}>
-        <MaterialIcon icon="refresh" />
-      </Button>
       <Row>
+        <Col span={1}>
+          <Button onClick={() => getTagList()}>
+            <MaterialIcon icon="refresh" />
+          </Button>
+        </Col>
         <Col span={6} style={{ marginBottom: 12 }}>
           <Input.Search
             placeholder="搜索文件"
@@ -134,6 +139,6 @@ function TagFiles() {
       </div>
     </div>
   );
-}
+};
 
 export default TagFiles;

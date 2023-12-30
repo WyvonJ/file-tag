@@ -1,12 +1,12 @@
-import { Tabs } from "antd";
-import "./App.scss";
-import "./styles/index.scss";
+import { Tabs } from 'antd';
 // import { Outlet, useNavigate } from 'react-router-dom';
-import FileManager from "./pages/FileManager";
-import TagManager from "./pages/TagManager";
-import TagFiles from "./pages/TagFiles";
-import ConfigManager from "./pages/ConfigManager";
+import FileManager from './pages/FileManager';
+import TagManager from './pages/TagManager';
+import TagFiles from './pages/TagFiles';
+import ConfigManager from './pages/ConfigManager';
 // import { useNavigate } from "react-router-dom";
+import './App.scss';
+import './styles/index.scss';
 
 const { TabPane } = Tabs;
 
@@ -20,7 +20,8 @@ function App() {
       <Tabs defaultActiveKey="FileManager" type="card">
         <TabPane tab="标签文件" key="TagFiles">
           <TagFiles />
-        </TabPane><TabPane tab="文件管理" key="FileManager">
+        </TabPane>
+        <TabPane tab="文件管理" key="FileManager">
           <FileManager />
         </TabPane>
         <TabPane tab="标签管理" key="TagManager">

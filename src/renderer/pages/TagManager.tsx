@@ -13,13 +13,18 @@ import {
 import { db, FtTag, PageParams } from '../database';
 import iconList from '../config/iconList.json';
 import colorList from '../config/colorList.json';
-import './TagManager.scss';
 import MaterialIcon from '../components/MaterialIcon';
 import Tag from '../components/Tag';
+import './TagManager.scss';
+
 const { useForm } = Form;
 const { Option } = Select;
 
-export default function TagManager() {
+/**
+ * 标签管理器
+ * @returns
+ */
+const TagManager = () => {
   // 弹窗显示
   const [modalVisible, setModalVisible] = useState(false);
   // 表单绑定值
@@ -126,7 +131,7 @@ export default function TagManager() {
       title: '预览',
       dataIndex: 'preview',
       render: (_all: any, { color, icon, name }: FtTag) => (
-        <Tag color={color} icon={icon} name={name} closable={true} />
+        <Tag color={color} icon={icon} name={name} closable={false} />
       ),
     },
     {
@@ -198,7 +203,7 @@ export default function TagManager() {
     <div className="tag-manager">
       <div
         style={{
-          margin: '20px',
+          margin: 12,
         }}
       >
         <Button
@@ -300,4 +305,6 @@ export default function TagManager() {
       </Modal>
     </div>
   );
-}
+};
+
+export default TagManager;

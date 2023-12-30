@@ -1,13 +1,14 @@
-import dayjs from "dayjs";
-import fs from "fs/promises";
-import path from "path";
+import dayjs from 'dayjs';
+import fs from 'fs/promises';
+import path from 'path';
 // import * as uuid from "uuid";
-import mimeTypes from "mime-types";
-import { generateThumbnails } from "../utils";
-import { Stats } from "fs";
-import { shell } from "electron";
-import Xlsx from "xlsx";
-import { sizeToStr } from "../../common/utils";
+import mimeTypes from 'mime-types';
+import { generateThumbnails } from '../utils';
+import { Stats } from 'fs';
+import { shell } from 'electron';
+import Xlsx from 'xlsx';
+import { sizeToStr } from '../../common/utils';
+import sharp from 'sharp';
 
 interface FileDesc {
   name: string;
@@ -19,21 +20,21 @@ interface FileDesc {
 
 // const imageTypes = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'bmp']
 const videoTypes = [
-  "mp4",
-  "mkv",
-  "ts",
-  "avi",
-  "wmv",
-  "m4v",
-  "flv",
-  "f4v",
-  "rm",
-  "rmvb",
-  "mov",
+  'mp4',
+  'mkv',
+  'ts',
+  'avi',
+  'wmv',
+  'm4v',
+  'flv',
+  'f4v',
+  'rm',
+  'rmvb',
+  'mov',
 ];
 // const audioTypes = ['mp3', 'flac', 'ape', 'ogg', 'wav', 'wma', 'aac']
 // 过滤文件
-const fileFilter = [".DS_Store"];
+const fileFilter = ['.DS_Store'];
 
 /**
  * 递归获取文件列表
@@ -45,18 +46,18 @@ export async function getFileListRecursive(dir: string): Promise<FileDesc[]> {
     try {
       const files: string[] = await fs.readdir(dirPath);
       for (const file of files) {
-        if (file.split(".").pop() === "app" || fileFilter.includes(file)) {
+        if (file.split('.').pop() === 'app' || fileFilter.includes(file)) {
           return;
         }
         const data = await fs.stat(path.join(dirPath, file));
         if (data.isFile()) {
-          const ext = file?.split(".")?.pop()?.toLowerCase() || "";
+          const ext = file?.split('.')?.pop()?.toLowerCase() || '';
           fileList.push({
             name: file,
             path: path.join(dirPath, file),
             size: sizeToStr(data.size),
             type: ext,
-            fileCreateDate: dayjs(data.birthtime).format("YYYY-MM-DD HH:mm:ss"),
+            fileCreateDate: dayjs(data.birthtime).format('YYYY-MM-DD HH:mm:ss'),
           });
         }
         if (data.isDirectory()) {
@@ -64,7 +65,7 @@ export async function getFileListRecursive(dir: string): Promise<FileDesc[]> {
         }
       }
     } catch (e) {
-      console.log("File read error", e);
+      console.log('File read error', e);
     }
   }
   await getFiles(dir);
@@ -82,20 +83,20 @@ export async function getFileListCurrent(dir: string): Promise<FileDesc[]> {
     for (const file of files) {
       const data = await fs.stat(path.join(dir, file));
       if (data.isFile() && !fileFilter.includes(file)) {
-        const ext = file?.split(".")?.pop()?.toLowerCase() || "";
+        const ext = file?.split('.')?.pop()?.toLowerCase() || '';
         if (videoTypes.includes(ext)) {
           fileList.push({
             name: file,
             path: path.join(dir, file),
             size: sizeToStr(data.size),
             type: ext,
-            fileCreateDate: dayjs(data.birthtime).format("YYYY-MM-DD HH:mm:ss"),
+            fileCreateDate: dayjs(data.birthtime).format('YYYY-MM-DD HH:mm:ss'),
           });
         }
       }
     }
   } catch (e) {
-    console.log("File read error", e);
+    console.log('File read error', e);
   }
   return fileList;
 }
@@ -104,7 +105,7 @@ export async function getFileListCurrent(dir: string): Promise<FileDesc[]> {
  * 获取目录下的文件列表, 包含文件夹
  * @export
  * @param {string} dir
- * @return {*} 
+ * @return {*}
  */
 export async function getDirList(dir: string) {
   const dirList: any[] = [];
@@ -113,14 +114,14 @@ export async function getDirList(dir: string) {
     for (const d of files) {
       const stats = await fs.stat(path.join(dir, d));
       if (d.split('.').pop() !== 'app' && !fileFilter.includes(d)) {
-        const ext = d?.split(".")?.pop()?.toLowerCase() || "";
+        const ext = d?.split('.')?.pop()?.toLowerCase() || '';
         const isFile = stats.isFile();
         dirList.push({
           name: d,
           path: path.join(dir, d),
           size: sizeToStr(stats.size),
           type: ext,
-          fileCreateDate: dayjs(stats.birthtime).format("YYYY-MM-DD HH:mm:ss"),
+          fileCreateDate: dayjs(stats.birthtime).format('YYYY-MM-DD HH:mm:ss'),
           isFile,
           isLeaf: isFile,
         });
@@ -129,7 +130,7 @@ export async function getDirList(dir: string) {
     return dirList;
   } catch (error) {
     return null;
-  }  
+  }
 }
 
 /**
@@ -138,11 +139,11 @@ export async function getDirList(dir: string) {
  * @returns {Promise<*>}
  */
 export async function getDirTree(dirPath: string) {
-  const name = dirPath.split("/").pop() || "";
+  const name = dirPath.split('/').pop() || '';
   const dirStats = await fs.stat(dirPath);
   if (
     !dirStats.isDirectory() ||
-    dirPath.split(".").pop() === "app" ||
+    dirPath.split('.').pop() === 'app' ||
     fileFilter.includes(name)
   ) {
     return [];
@@ -163,7 +164,7 @@ export async function getDirTree(dirPath: string) {
       // 4. 只包含所有视频文件
       if (
         !rootStats.isDirectory() ||
-        root.path.split(".").pop() === "app" ||
+        root.path.split('.').pop() === 'app' ||
         fileFilter.includes(root.name)
       ) {
         return;
@@ -180,8 +181,8 @@ export async function getDirTree(dirPath: string) {
         dirs
           .filter((dir) => !fileFilter.includes(dir))
           .map(async (dir) => {
-            const name = dir.split("/").pop();
-            const ext = (name?.split(".")?.pop() || "").toLowerCase();
+            const name = dir.split('/').pop();
+            const ext = (name?.split('.')?.pop() || '').toLowerCase();
             const stats = await fs.stat(path.join(root.path, dir));
             const node = {
               // id: uuid.v4(),
@@ -189,7 +190,7 @@ export async function getDirTree(dirPath: string) {
               path: path.join(root.path, dir),
               // parentId: root.id,
             };
-            if (stats.isDirectory() && dir.split(".").pop() !== "app") {
+            if (stats.isDirectory() && dir.split('.').pop() !== 'app') {
               const result = await getTree({
                 ...node,
                 isLeaf: false,
@@ -250,14 +251,14 @@ export async function readExcel(path: string) {
 
 export async function readImageList({ source, options }) {
   try {
-    console.log("开始生成缩略图");
-    console.time("耗时");
+    console.log('开始生成缩略图');
+    console.time('耗时');
     const images = await generateThumbnails(source, options);
-    console.timeEnd("耗时");
-    console.log("已生成缩略图");
+    console.timeEnd('耗时');
+    console.log('已生成缩略图');
     return images;
   } catch (e) {
-    console.log("生成缩略图 Error", e);
+    console.log('生成缩略图 Error', e);
     return e;
   }
 }
@@ -268,10 +269,10 @@ export async function readImageList({ source, options }) {
  */
 export async function getImage(path: string) {
   try {
-    console.log("开始加载图片");
+    console.log('开始加载图片');
     const image = await fs.readFile(path);
-    const data = new Buffer(image).toString("base64");
-    console.log("完成加载图片");
+    const data = new Buffer(image).toString('base64');
+    console.log('完成加载图片');
     console.log(mimeTypes.lookup(path));
     return `data:${mimeTypes.lookup(path)};base64,${data}`;
   } catch (e) {
@@ -280,10 +281,7 @@ export async function getImage(path: string) {
   }
 }
 
-export async function renameFile({
-  oldPath,
-  newPath
-}) {
+export async function renameFile({ oldPath, newPath }) {
   try {
     await fs.rename(oldPath, newPath);
     return true;
@@ -302,13 +300,19 @@ export async function renameFile({
  *   data
  * }
  */
-export async function saveImage({
-  dirpath,
-  filename,
-  data
-}) {
+export async function saveImage({ dirpath, filename, data }) {
   try {
-    await fs.writeFile(path.join(dirpath, filename), data, 'base64');
+    const filepath = path.join(dirpath, filename);
+    const compressedFilepath = path.join(dirpath, '[C]' + filename);
+    await fs.writeFile(filepath, data, 'base64');
+    // 写完文件后进行压缩
+    await sharp(filepath)
+      .jpeg({
+        quality: 90,
+      })
+      .toFile(compressedFilepath);
+    await fs.rm(filepath);
+    await fs.rename(compressedFilepath, filepath)
     return true;
   } catch (error) {
     console.log('Failed to write iamge', error);

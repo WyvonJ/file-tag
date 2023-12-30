@@ -1,9 +1,9 @@
 import { Button, Col, Input, message, Row, Upload } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import './ConfigManager.scss';
 import { getFileStats, readExcel } from '../api';
 import { db, importDatabase } from '../database';
 import MaterialIcon from 'renderer/components/MaterialIcon';
+import './ConfigManager.scss';
 
 function ConfigManager() {
   async function handlerBeforeUpload(file) {
@@ -61,8 +61,12 @@ function ConfigManager() {
   }
 
   async function handlerImportDatabase(file) {
-    await importDatabase(file);
-    message.success('数据库导入成功');
+    const result = await importDatabase(file);
+    if (result) {
+      message.success('数据库导入成功');
+    } else {
+      message.error('数据库导入失败');
+    }
   }
 
   async function handlerDrop(e) {

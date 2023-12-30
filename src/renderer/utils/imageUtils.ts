@@ -100,20 +100,20 @@ export async function combineImages(
 
   // 绘制文件名
   ctx.fillStyle = "#ffffff";
-  ctx.font = 'bold 40px "Palatino Linotype"';
+  ctx.font = 'bold 40px "sans-serif"';
   ctx.fillText(filename, 12, 50);
   // 绘制文件时长
-  ctx.font = 'bold 26px "Palatino Linotype"';
+  ctx.font = 'bold 26px "sans-serif"';
   ctx.fillText(formatSeconds(duration), w - 160, 30);
   // 绘制文件大小
-  ctx.font = 'bold 26px "Palatino Linotype"';
+  ctx.font = 'bold 26px "sans-serif"';
   ctx.fillText(sizeToStr(size), w - 160, 68);
   // 绘制文件分辨率
-  ctx.font = 'bold 30px "Palatino Linotype"';
+  ctx.font = 'bold 30px "sans-serif"';
   ctx.fillText(`${videoWidth}×${videoHeight}`, w - 400, 30);
   // 绘制缩略图
   const imageCount = columns * rows;
-  ctx.font = '400 30px "Palatino Linotype"';
+  ctx.font = '400 30px "sans-serif"';
   // 按顺序绘制所有缩略图
   for (let i = 0; i < imageCount; i += columns) {
     for (let j = 0; j < columns; j++) {
