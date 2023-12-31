@@ -327,6 +327,7 @@ export default {
   getDirTree,
   getFileStats,
   openFile,
+  openDirctory,
   readExcel,
   readImageList,
   getImage,

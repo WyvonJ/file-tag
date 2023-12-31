@@ -11,7 +11,7 @@ function TagSelect({  selectedKeys = [] }: any, ref) {
     const list = await db.getTagList();
     // 过滤掉已选择的
     setTagList(list.filter(({ id }) => !selectedKeys.includes(id)));
-    if (Array.isArray(selectedKeys) && selectedKeys.length) {
+    if (Array.isArray(selectedKeys)) {
       // @ts-ignore
       setSelected(selectedKeys.map((key) => list.find(({ id }) => id === key)))
     }
@@ -32,6 +32,12 @@ function TagSelect({  selectedKeys = [] }: any, ref) {
 
   useImperativeHandle(ref, () => ({
     selected,
+    getSelectedTags() {
+      return selected;
+    },
+    setSelectedTags(tagIds) {
+      console.log('tagIds', tagIds);
+    },
   }))
 
   return (

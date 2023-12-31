@@ -8,7 +8,7 @@ export function getSep(): '/' | '\\' {
  * @param {*} oldArr
  * @param {*} newArr
  * @param {*} compareKey
- * @return {*} 
+ * @return {*}
  */
 export function diffFileTree(oldArr, newArr, compareKey) {
   const deleted: any[] = [];
@@ -29,7 +29,28 @@ export function diffFileTree(oldArr, newArr, compareKey) {
   };
 }
 
+// 迭代获取匹配的树数据
+export const filterTreeData = (data, searchValue) => {
+  return data
+    .map((item) => {
+      if (item.isFile) {
+        return item;
+      }
+      return {
+        ...item,
+        children: filterTreeData(item.children, searchValue),
+      };
+    })
+    .filter((item) => {
+      if (item.isFile) {
+        return item.name.includes(searchValue);
+      }
+      return item.children?.length > 0;
+    });
+};
+
 export default {
   getSep,
   diffFileTree,
+  filterTreeData,
 };

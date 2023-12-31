@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from 'antd';
 import Draggable from 'react-draggable';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   getDirList,
   getDirTree,
@@ -28,7 +28,7 @@ import TagSelect from '../components/TagSelect';
 import Tag from '../components/Tag';
 import Thumbnails from 'renderer/components/Thumbnails';
 import { formatSeconds, sizeToStr } from 'common/utils';
-import { diffFileTree, getSep } from 'renderer/utils/commonUtils';
+import { diffFileTree, filterTreeData, getSep } from 'renderer/utils/commonUtils';
 import { combineImages } from 'renderer/utils/imageUtils';
 import './FileManager.scss';
 
@@ -59,7 +59,7 @@ const FileManager = () => {
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [renameVisible, setRenameVisible] = useState(false);
   const [renameValue, setRenameValue] = useState('');
-  const tagSelectRef = useRef<typeof TagSelect>();
+  const tagSelectRef = useRef<any>();
 
   const draggleRef: any = useRef();
 
@@ -140,7 +140,7 @@ const FileManager = () => {
    * 给选定文件贴上标签
    */
   async function handlerAddTagsToFile() {
-    const { selected = [] }: any = tagSelectRef.current;
+    const selected = tagSelectRef.current.getSelectedTags();
     const selectedIds = selected.map(({ id }) => id);
     if (!currentFile?.id) {
       message.error('请选择文件');
@@ -167,9 +167,19 @@ const FileManager = () => {
     hide();
   }
 
+  const [searchValue, setSearchValue]=useState('')
   async function handlerSearchChange({ target: { value } }) {
-    console.log(value);
+    setSearchValue(value)
   }
+
+  const searchTreeData = useMemo(() => {
+    if (!searchValue) {
+      return treeData;
+    }
+
+    return filterTreeData(treeData, searchValue);
+
+  }, [treeData, searchValue])
 
   // 删除文件绑定的标签
   async function handlerDelTagAttachment(id, name) {
@@ -222,14 +232,13 @@ const FileManager = () => {
 
   // 评分
   const [rate, setRate] = useState(0);
-  const [hoverRate, setHoverRate] = useState(0);
   /**
    * 文件评分
    * @param {*} v
    */
   async function handlerRate(v) {
     if (!currentFile?.id) {
-      message.info('请选择文件');
+      message.info('请先选择文件');
       return;
     }
     setRate(v);
@@ -431,7 +440,7 @@ const FileManager = () => {
             placeholder="Search"
             onChange={handlerSearchChange}
           />
-          {treeData?.length ? (
+          {searchTreeData?.length ? (
             <Tree.DirectoryTree
               draggable={true}
               blockNode={true}
@@ -446,7 +455,7 @@ const FileManager = () => {
                   // console.log('fList', fList);
                 }
               }}
-              treeData={treeData}
+              treeData={searchTreeData}
               fieldNames={{
                 key: 'id',
                 title: 'name',
@@ -545,6 +554,18 @@ const FileManager = () => {
             >
               打开文件
             </Button>
+            <Button
+              type="link"
+              onClick={() => {
+                if (!currentFile?.path) {
+                  message.info('请选择文件');
+                  return;
+                }
+                openFile(currentFile.path.replace(currentFile.name + '', ''));
+              }}
+            >
+              打开文件夹
+            </Button>
             <h1>{currentFile.name}</h1>
             <h2>{currentFile.path}</h2>
             <h2>{sizeToStr(currentFile.size)}</h2>
@@ -556,8 +577,9 @@ const FileManager = () => {
           <Empty description="未选择文件" style={{ paddingTop: '150px' }} />
         )}
       </div>
+      {/* 标签管理等 */}
       <div className="file-manager__manage">
-        <Row>
+        {currentFile?.id ? <Row>
           <Col span={24}>
             <div className="file-manager__files--tags">
               {currentFile.tagList.map((tag) => (
@@ -574,13 +596,14 @@ const FileManager = () => {
             </div>
             <Button
               onClick={handlerAddTag}
-              shape="circle"
-              size="large"
+              shape="round"
+              type="primary"
               style={{
                 marginBottom: 12,
               }}
+              icon={<MaterialIcon icon="add" />}
             >
-              <MaterialIcon icon="add" />
+              <span style={{ position: 'relative', bottom: 4 }}>添加标签</span>
             </Button>
           </Col>
           <Col span={24} style={{ marginBottom: 12 }}>
@@ -591,9 +614,10 @@ const FileManager = () => {
             </span>
             <Rate
               allowHalf={true}
-              onChange={handlerRate}
-              value={hoverRate}
-              onHoverChange={(v) => setHoverRate(v || 0)}
+              onChange={(v) => {
+                handlerRate(v);
+              }}
+              value={rate}
             />
           </Col>
           <Col span={24}>
@@ -603,6 +627,8 @@ const FileManager = () => {
               onChange={(v) => {
                 setRemarkValue(v.target.value);
               }}
+              placeholder="请填写评论内容"
+              maxLength={500}
             />
             <Button
               onClick={handlerSubmitRemark}
@@ -616,7 +642,7 @@ const FileManager = () => {
               <span className="btn-text">提交评论</span>
             </Button>
           </Col>
-        </Row>
+        </Row> : <Empty description="未选择文件"></Empty>}
       </div>
 
       <Modal
@@ -648,7 +674,10 @@ const FileManager = () => {
           </Draggable>
         )}
       >
-        <TagSelect ref={tagSelectRef} selectedKeys={currentFile.tagIds} />
+        <TagSelect
+          ref={tagSelectRef}
+          selectedKeys={currentFile.tagList?.map(({ id }) => id)}
+        />
       </Modal>
 
       <Modal
